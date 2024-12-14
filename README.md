@@ -11,11 +11,10 @@
 4. #### **[Despliegue de la infraestructura](#despliegue)**  
 
 5. #### **[Scripts aprovisionamiento](#scripts)**
-   - *[Provision del balanceador](#)*
-   - *[Provision del servidor web1](#)*
-   - *[Provision del servidor web2](#)*
-   - *[Provision del servidor NFS](#)*
-   - *[Provision del servidor BBDD](#)* 
+   - *[Provision del balanceador](#script-del-balanceador)*
+   - *[Provision del servidor web1](#script-servidores-web)*
+   - *[Provision del servidor NFS](#script-nfs)*
+   - *[Provision del servidor BBDD](#script-bbdd)* 
 
 ## Introducción
 
@@ -38,13 +37,13 @@ La infraestructura contará con 3 capas que contendrán:
 
 ## Direccionamiento IP
 
-| Servidor                | IP                           | Descripción                            |
-|-------------------------|------------------------------|----------------------------------------|
-| balanceadorAlberto      | 192.168.30.10/192.168.40.10  | Balanceador de carga, red pública y red interna     |
-| serverweb1Alberto       | 192.168.40.11                | Servidor web 1, red interna.           |
-| serverweb2Alberto       | 192.168.40.12                | Servidor web 2, red interna.           |
-| serverNFSAlberto        | 192.168.40.13                | Servidor NFS y PHP-FPM, red interna.   |
-| serverdatosAlberto      | 192.168.50.10                | Servidor BBDD, red interna.|
+| Servidor                | IP                           | Descripción                                         |
+|-------------------------|------------------------------|-----------------------------------------------------|
+| `balanceadorAlberto`    | 192.168.30.10/192.168.40.10  | Balanceador de carga, red pública y red interna     |
+| `serverweb1Alberto`     | 192.168.40.11                | Servidor web 1, red interna.                        |
+| `serverweb2Alberto`     | 192.168.40.12                | Servidor web 2, red interna.                        |
+| `serverNFSAlberto`      | 192.168.40.13                | Servidor NFS y PHP-FPM, red interna.                |
+| `serverdatosAlberto`    | 192.168.50.10                | Servidor BBDD, red interna.                         |
 
 ### Capa 1: Balanceador de carga
 - **Servidor:** `balanceadorAlberto`  
@@ -71,19 +70,15 @@ Esta capa contiene los servidores web que procesan las solicitudes del balancead
   - Aloja la base de datos MariaDB que almacena toda la información del CMS.  
   - Se comunica únicamente con los servidores web de la capa 2 para manejar consultas.
 
-
-
-
-
-
 ## Despliegue
+
 
 ## Scripts
 
+#### Script del balanceador
 
+#### Script servidores web
 
+#### Script NFS
 
-
-### ENUN
-
-
+#### Script BBDD
