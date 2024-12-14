@@ -37,13 +37,13 @@ La infraestructura contará con 3 capas que contendrán:
 
 ## Direccionamiento IP
 
-| Servidor                | IP                           | Descripción                                         |
-|-------------------------|------------------------------|-----------------------------------------------------|
-| `balanceadorAlberto`    | 192.168.30.10/192.168.40.10  | Balanceador de carga, red pública y red interna     |
-| `serverweb1Alberto`     | 192.168.40.11                | Servidor web 1, red interna.                        |
-| `serverweb2Alberto`     | 192.168.40.12                | Servidor web 2, red interna.                        |
-| `serverNFSAlberto`      | 192.168.40.13                | Servidor NFS y PHP-FPM, red interna.                |
-| `serverdatosAlberto`    | 192.168.50.10                | Servidor BBDD, red interna.                         |
+| Servidor                | IP                           | Descripción                                                           |
+|-------------------------|------------------------------|-----------------------------------------------------------------------|
+| `balanceadorAlberto`    | 192.168.30.10/192.168.40.10  | Balanceador de carga, red pública y red interna                       |
+| `serverweb1Alberto`     | 192.168.40.11/192.168.50.11  | Servidor web 1, red interna y red interna BBDD                        |
+| `serverweb2Alberto`     | 192.168.40.12/192.168.50.12  | Servidor web 2, red interna y red interna BBDD                        |
+| `serverNFSAlberto`      | 192.168.40.13/192.168.50.13  | Servidor NFS y PHP-FPM, red interna y red interna BBDD                |
+| `serverdatosAlberto`    | 192.168.50.10                | Servidor BBDD, red interna.                                           |
 
 ### Capa 1: Balanceador de carga
 - **Servidor:** `balanceadorAlberto`  
@@ -57,12 +57,14 @@ Esta capa contiene los servidores web que procesan las solicitudes del balancead
 - **Servidor web1:** `serverweb1Alberto` con ip `192.168.40.11`.  
 - **Servidor web2:** `serverweb2Alberto` con ip `192.168.40.12`.
 - **Servidor NFS:** `serverNFSAlberto` con IP `192.168.40.13`.  
-- **Red:** Los servidores están en la red interna `192.168.40.0/24`.   
+- **Red:** Los servidores están en la red interna `192.168.40.0/24` y también tienen acceso a la red `192.168.50.0/24`, que es donde se encuentra el servidor de base de datos.   
   - Reciben las solicitudes balanceadas desde `balanceadorAlberto`.  
   - Acceden a los archivos compartidos en `serverNFSAlberto`.  
   - Procesan aplicaciones dinámicas utilizando el motor PHP-FPM alojado en `serverNFSAlberto`. 
-  - Proporciona almacenamiento compartido mediante NFS para los servidores web.  
-  - Aloja el motor PHP-FPM para el procesamiento de scripts PHP de los servidores web.
+  - `serverNFSAlberto` proporciona almacenamiento compartido mediante NFS para los servidores web.  
+  - Aloja el motor PHP-FPM para el procesamiento de scripts PHP de los servidores web.  
+  - Además, los servidores web y `serverNFSAlberto` tienen comunicación con el servidor de base de datos `serverdatosAlberto` en la red `192.168.50.0/24` para manejar consultas de la base de datos.
+
 
 ### Capa 3: BBDD
 - **Servidor:** `serverdatosAlberto` con IP `192.168.50.10`.  
