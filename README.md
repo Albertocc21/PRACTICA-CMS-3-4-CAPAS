@@ -123,8 +123,7 @@ sudo systemctl restart nginx
 ### Script servidores web
 ```bash
 sudo apt-get update -y
-sudo apt-get install -y nginx nfs-common php7.4 php7.4-fpm php7.4-mysql php7.4-gd php7.4-xml php7.4-mbstring php7.4-curl php7.4-zip php7.4-intl php7.4-ldap
-sudo apt install mariadb-client
+sudo apt-get install -y nginx nfs-common php7.4 php7.4-fpm php7.4-mysql php7.4-gd php7.4-xml php7.4-mbstring php7.4-curl php7.4-zip php7.4-intl php7.4-ldap mariadb-client
 
 mkdir -p /var/www/html
 
@@ -170,9 +169,7 @@ sudo ip route del default
 ```
 **sudo apt update:** Actualiza la lista de paquetes.
 
-**sudo apt-get install -y nginx nfs-common php7.4 php7.4-fpm php7.4-mysql php7.4-gd php7.4-xml php7.4-mbstring php7.4-curl php7.4-zip php7.4-intl php7.4-ldap:** Instala Nginx, el cliente NFS y varias extensiones de PHP necesarias.
-
-**sudo apt install mariadb-client:** Instala el cliente de MariaDB para conectar con la base de datos.
+**sudo apt-get install -y nginx nfs-common php7.4 php7.4-fpm php7.4-mysql php7.4-gd php7.4-xml php7.4-mbstring php7.4-curl php7.4-zip php7.4-intl php7.4-ldap mariadb-client::** Instala Nginx, el cliente NFS, varias extensiones de PHP necesarias y el cliente MariaDB
 
 **mkdir -p /var/www/html:** Crea el directorio `/var/www/html` si no existe.
 
