@@ -71,7 +71,7 @@ La infraestructura contará con 3 capas que contendrán:
   - Procesan aplicaciones dinámicas utilizando el motor PHP-FPM alojado en `serverNFSAlberto`. 
   - `serverNFSAlberto` proporciona almacenamiento compartido mediante NFS para los servidores web.  
   - Aloja el motor PHP-FPM para el procesamiento de scripts PHP de los servidores web.  
-  - Además, los servidores web y `serverNFSAlberto` tienen comunicación con el servidor de base de datos `serverdatosAlberto` en la red `192.168.51.0/24` para manejar consultas de la base de datos.
+  - Además, los servidores web y `serverNFSAlberto` tienen comunicación con el servidor de base de datos `serverdatosAlberto` en la red `192.168.52.0/24` para manejar consultas de la base de datos.
 
 
 ### Capa 3: BBDD
@@ -162,7 +162,7 @@ sudo systemctl restart nginx
 
 **sudo apt-get install -y nginx:** Instala el servidor web Nginx.
 
-**cat <<EOF > /etc/nginx/sites-available/default:** Crea y escribe la configuración del servidor web Nginx para que actúe como un balanceador de carga. La configuración especifica dos servidores backend (con las IPs `192.168.42.11` y `192.168.42.12`) que recibirán las solicitudes de los clientes.
+**cat <<EOF > /etc/nginx/sites-available/default:** Crea y escribe la configuración del servidor web Nginx para que actúe como un balanceador de carga. La configuración especifica dos servidores backend (con las ips `192.168.42.11` y `192.168.42.12`) que recibirán las solicitudes de los clientes.
 
 **sudo systemctl restart nginx:** Reinicia el servicio Nginx.
 
@@ -377,6 +377,8 @@ sudo ip route del default
 **sudo ip route del default**: Elimina la ruta de puerta de enlace predeterminada.
 
 ## Resultado OwnCloud
+**_El mapeo de puertos no funciona por y es por esto que accedemos por una ip pública._**
+
 **Tenemos que mirar la ip del balanceador(en mi caso 192.168.0.27).**
 ![ip a](https://github.com/user-attachments/assets/c9fdf3c4-3431-465f-a96b-6c1e9231bcd9)
 
