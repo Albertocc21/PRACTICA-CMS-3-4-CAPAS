@@ -1,18 +1,23 @@
 # PRACTICA-CMS-3-4-CAPAS
 
+## Requisitos
+- Tener Vagrant y VirtualBox.
+- ISO Debian.
+- Automatización de máquinas
+
 ## Índice
 
 1. #### **[Introducción de la práctica](#introducción)**
 
 2. #### **[Estructura](#estructura-de-la-infraestructura)**     
 
-3. #### **[Explicación direccionamiento ip](#direccionamiento-ip)**
+3. #### **[Explicación direccionamiento red](#direccionamiento-red)**
 
 4. #### **[Scripts aprovisionamiento](#scripts)**
-   - *[Provision del balanceador](#script-del-balanceador)*
-   - *[Provision del servidor web1](#script-servidores-web)*
-   - *[Provision del servidor NFS](#script-nfs)*
-   - *[Provision del servidor BBDD](#script-bbdd)* 
+   - *[Aprovisionamiento del balanceador](#script-del-balanceador)*
+   - *[Aprovisionamiento del servidor web1](#script-servidores-web)*
+   - *[Aprovisionamiento del servidor NFS](#script-nfs)*
+   - *[Aprovisionamiento del servidor BBDD](#script-bbdd)* 
 
 5. #### **[Resultado](#resultado-owncloud)**
 
@@ -37,7 +42,7 @@ La infraestructura contará con 3 capas que contendrán:
 - **Capa 3: Servidor BBDD**
   - Servicio: MariaDB.
 
-## Direccionamiento IP
+## Direccionamiento red
 
 | Servidor                | IP                           | Descripción                                                           |
 |-------------------------|------------------------------|-----------------------------------------------------------------------|
@@ -107,7 +112,7 @@ EOF
 
 sudo systemctl restart nginx
 ```
-**sudo apt-get update -y:** Actualiza la lista de paquetes disponibles en el sistema.
+**sudo apt-get update -y:** Actualiza la lista de paquetes.
 
 **sudo apt-get install -y nginx:** Instala el servidor web Nginx.
 
@@ -328,12 +333,12 @@ sudo ip route del default
 
 **sudo ip route del default**: Elimina la ruta de puerta de enlace predeterminada.
 
-## Resultado Owncloud
+## Resultado OwnCloud
 **Tenemos que mirar la ip del balanceador(en mi caso 192.168.0.23).**
 ![direccion ip](https://github.com/user-attachments/assets/7e128582-2d03-4012-8991-14bcbf2e2c0c)
 
-**En el navegador buscamos ```http://ipbalanceador/owncloud y nos saltaría directamente al login, donde tenemos que poner nombre del admin y su contraseña.**
+**En el navegador buscamos ```http://ipbalanceador/owncloud y nos direige directamente al login, donde tendremos que poner nombre del admin y su contraseña.**
 ![owncloud login admin](https://github.com/user-attachments/assets/5941451a-edb2-4e11-b35e-1f0d938d5fd4)
 
-**Una vez introducido las credenciales nos dirige dentro de Owncloud.**
+**Una vez introducido las credenciales, nos redirige dentro de OwnCloud.**
 ![owncloud archivos](https://github.com/user-attachments/assets/d657d4ac-81f7-4fcd-84ad-30b104e5da6c)
