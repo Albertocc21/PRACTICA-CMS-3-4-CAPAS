@@ -13,7 +13,8 @@
 
 3. #### **[Explicación direccionamiento red](#direccionamiento-red)**
 
-4. #### **[Scripts aprovisionamiento](#scripts)**
+4. #### **[Vagrantfile y Scripts aprovisionamiento](#vagrantfile-y-scripts)**
+   - *[Vagrantfile](#vagrantfile)*
    - *[Aprovisionamiento del balanceador](#script-del-balanceador)*
    - *[Aprovisionamiento del servidor web1](#script-servidores-web)*
    - *[Aprovisionamiento del servidor NFS](#script-nfs)*
@@ -46,25 +47,25 @@ La infraestructura contará con 3 capas que contendrán:
 
 | Servidor                | IP                           | Descripción                                                           |
 |-------------------------|------------------------------|-----------------------------------------------------------------------|
-| `balanceadorAlberto`    | IP pública/192.168.40.10     | Balanceador de carga, red pública y red interna                       |
-| `serverweb1Alberto`     | 192.168.41.11/192.168.51.11  | Servidor web 1, red interna y red interna BBDD                        |
-| `serverweb2Alberto`     | 192.168.41.12/192.168.51.12  | Servidor web 2, red interna y red interna BBDD                        |
-| `serverNFSAlberto`      | 192.168.41.13/192.168.51.13  | Servidor NFS y PHP-FPM, red interna y red interna BBDD                |
-| `serverdatosAlberto`    | 192.168.51.10                | Servidor BBDD, red interna.                                           |
+| `balanceadorAlberto`    | IP pública/192.168.42.10     | Balanceador de carga, red pública y red interna                       |
+| `serverweb1Alberto`     | 192.168.42.11/192.168.52.11  | Servidor web 1, red interna y red interna BBDD                        |
+| `serverweb2Alberto`     | 192.168.42.12/192.168.52.12  | Servidor web 2, red interna y red interna BBDD                        |
+| `serverNFSAlberto`      | 192.168.42.13/192.168.52.13  | Servidor NFS y PHP-FPM, red interna y red interna BBDD                |
+| `serverdatosAlberto`    | 192.168.52.10                | Servidor BBDD, red interna.                                           |
 
 ### Capa 1: Balanceador de carga
 
 - **Servidor:** `balanceadorAlberto`  
-- **IP:** (red pública de la máquina) y `192.168.41.10` (red interna).   
+- **IP:** (red pública de la máquina) y `192.168.42.10` (red interna).   
   - La **IP pública** permite que los clientes accedan al servicio desde Internet.  
-  - La **IP interna (192.168.41.10)** se utiliza para comunicarse con los servidores web en la capa 2, garantizando que las comunicaciones internas no sean accesibles desde el exterior.
+  - La **IP interna (192.168.42.10)** se utiliza para comunicarse con los servidores web en la capa 2, garantizando que las comunicaciones internas no sean accesibles desde el exterior.
 
 ### Capa 2: Servidores web y NFS
 
-- **Servidor web1:** `serverweb1Alberto` con ip `192.168.41.11`.  
-- **Servidor web2:** `serverweb2Alberto` con ip `192.168.41.12`.
-- **Servidor NFS:** `serverNFSAlberto` con IP `192.168.41.13`.  
-- **Red:** Los servidores están en la red interna `192.168.41.0/24` y también tienen acceso a la red `192.168.51.0/24`, que es donde se encuentra el servidor de base de datos.   
+- **Servidor web1:** `serverweb1Alberto` con ip `192.168.42.11`.  
+- **Servidor web2:** `serverweb2Alberto` con ip `192.168.42.12`.
+- **Servidor NFS:** `serverNFSAlberto` con IP `192.168.42.13`.  
+- **Red:** Los servidores están en la red interna `192.168.42.0/24` y también tienen acceso a la red `192.168.52.0/24`, que es donde se encuentra el servidor de base de datos.   
   - Reciben las solicitudes balanceadas desde `balanceadorAlberto`.  
   - Acceden a los archivos compartidos en `serverNFSAlberto`.  
   - Procesan aplicaciones dinámicas utilizando el motor PHP-FPM alojado en `serverNFSAlberto`. 
@@ -75,13 +76,58 @@ La infraestructura contará con 3 capas que contendrán:
 
 ### Capa 3: BBDD
 
-- **Servidor:** `serverdatosAlberto` con IP `192.168.51.10`.  
-- **Red:** Utiliza otra subred interna `192.168.51.0/24`.   
+- **Servidor:** `serverdatosAlberto` con IP `192.168.52.10`.  
+- **Red:** Utiliza otra subred interna `192.168.52.0/24`.   
   - Aloja la base de datos MariaDB que almacena toda la información del CMS.  
   - Se comunica únicamente con los servidores web de la capa 2 para manejar consultas.
 
 
-## Scripts
+## Vagrantfile y Scripts
+
+### Vagrantfile
+```bash
+Vagrant.configure("2") do |config|
+# Configuración global
+config.vm.box = "debian/bullseye64"
+        # BBDD
+    config.vm.define "serverdatosAlberto" do |database|
+        database.vm.hostname = "serverdatosAlberto"
+        database.vm.network "private_network", ip: "192.168.52.10", virtualbox_intnet: "red_privadaBBDD"               # Red interna BBDD 
+        database.vm.provision "shell", path: "db.sh"
+    end
+
+        # Servidor NFS
+    config.vm.define "serverNFSAlberto" do |nfs|
+        nfs.vm.hostname = "serverNFSAlberto"
+        nfs.vm.network "private_network", ip: "192.168.42.13", virtualbox_intnet: "red_privada"                        # Red interna
+        nfs.vm.network "private_network", ip: "192.168.52.13", virtualbox_intnet: "red_privadaBBDD"                    # Red interna BBDD
+        nfs.vm.provision "shell", path: "nfs.sh"
+    end
+    
+        # Servidor web1
+    config.vm.define "serverweb1Alberto" do |webserver1|
+        webserver1.vm.hostname = "serverweb1Alberto"
+        webserver1.vm.network "private_network", ip: "192.168.42.11", virtualbox_intnet: "red_privada"                   # Red interna
+        webserver1.vm.network "private_network", ip: "192.168.52.11", virtualbox_intnet: "red_privadaBBDD"               # Red interna BBDD
+        webserver1.vm.provision "shell", path: "web.sh"
+    end
+    
+        # Servidor web2
+    config.vm.define "serverweb2Alberto" do |webserver2|
+        webserver2.vm.hostname = "serverweb2Alberto"
+        webserver2.vm.network "private_network", ip: "192.168.42.12", virtualbox_intnet: "red_privada"                  # Red interna
+        webserver2.vm.network "private_network", ip: "192.168.52.12", virtualbox_intnet: "red_privadaBBDD"              # Red interna BBDD
+        webserver2.vm.provision "shell", path: "web.sh"
+    end
+    # Balanceador
+    config.vm.define "balanceadorAlberto" do |balanceador|
+        balanceador.vm.hostname = "balanceadorAlberto"
+        balanceador.vm.network "public_network"   # Red pública
+        balanceador.vm.network "private_network", ip: "192.168.42.10", virtualbox_intnet: "red_privada"                  # Red interna
+        balanceador.vm.provision "shell", path: "balanceador.sh"
+    end
+end
+```
 
 ### Script del balanceador
 ```bash
@@ -91,8 +137,8 @@ sudo apt-get install -y nginx
 
 cat <<EOF > /etc/nginx/sites-available/default
 upstream backend_servers {
-    server 192.168.41.11;
-    server 192.168.41.12;
+    server 192.168.42.11;
+    server 192.168.42.12;
 }
 
 server {
@@ -116,7 +162,7 @@ sudo systemctl restart nginx
 
 **sudo apt-get install -y nginx:** Instala el servidor web Nginx.
 
-**cat <<EOF > /etc/nginx/sites-available/default:** Crea y escribe la configuración del servidor web Nginx para que actúe como un balanceador de carga. La configuración especifica dos servidores backend (con las IPs `192.168.41.11` y `192.168.41.12`) que recibirán las solicitudes de los clientes.
+**cat <<EOF > /etc/nginx/sites-available/default:** Crea y escribe la configuración del servidor web Nginx para que actúe como un balanceador de carga. La configuración especifica dos servidores backend (con las IPs `192.168.42.11` y `192.168.42.12`) que recibirán las solicitudes de los clientes.
 
 **sudo systemctl restart nginx:** Reinicia el servicio Nginx.
 
@@ -128,10 +174,10 @@ sudo apt-get install -y nginx nfs-common php7.4 php7.4-fpm php7.4-mysql php7.4-g
 mkdir -p /var/www/html
 
 
-sudo mount -t nfs 192.168.41.13:/var/www/html /var/www/html
+sudo mount -t nfs 192.168.42.13:/var/www/html /var/www/html
 
 
-echo "192.168.41.13:/var/www/html /var/www/html nfs defaults 0 0" >> /etc/fstab
+echo "192.168.42.13:/var/www/html /var/www/html nfs defaults 0 0" >> /etc/fstab
 
 
 cat <<EOF > /etc/nginx/sites-available/default
@@ -147,7 +193,7 @@ server {
 
     location ~ \.php\$ {
         include snippets/fastcgi-php.conf;
-        fastcgi_pass 192.168.41.13:9000;
+        fastcgi_pass 192.168.42.13:9000;
         fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
         include fastcgi_params;
     }
@@ -173,9 +219,9 @@ sudo ip route del default
 
 **mkdir -p /var/www/html:** Crea el directorio `/var/www/html` si no existe.
 
-**sudo mount -t nfs 192.168.41.13:/var/www/html /var/www/html:** Monta el directorio `/var/www/html` desde el servidor NFS con la IP `192.168.41.13`.
+**sudo mount -t nfs 192.168.42.13:/var/www/html /var/www/html:** Monta el directorio `/var/www/html` desde el servidor NFS con la IP `192.168.41.13`.
 
-**echo "192.168.41.13:/var/www/html /var/www/html nfs defaults 0 0" >> /etc/fstab:** Añade la configuración de montaje NFS al archivo `/etc/fstab` para que se monte automáticamente en el inicio del sistema.
+**echo "192.168.42.13:/var/www/html /var/www/html nfs defaults 0 0" >> /etc/fstab:** Añade la configuración de montaje NFS al archivo `/etc/fstab` para que se monte automáticamente en el inicio del sistema.
 
 **cat <<EOF > /etc/nginx/sites-available/default:** Crea y configura un archivo de configuración para el servidor web Nginx.
 
@@ -198,8 +244,8 @@ sudo chown -R www-data:www-data /var/www/html
 sudo chmod -R 755 /var/www/html
 
 
-echo "/var/www/html 192.168.41.11(rw,sync,no_subtree_check)" >> /etc/exports
-echo "/var/www/html 192.168.41.12(rw,sync,no_subtree_check)" >> /etc/exports
+echo "/var/www/html 192.168.42.11(rw,sync,no_subtree_check)" >> /etc/exports
+echo "/var/www/html 192.168.42.12(rw,sync,no_subtree_check)" >> /etc/exports
 
 
 exportfs -a
@@ -222,7 +268,7 @@ cat <<EOF > /var/www/html/owncloud/config/autoconfig.php
   "dbname" => "db_owncloud",
   "dbuser" => "alberto",
   "dbpassword" => "1234",
-  "dbhost" => "192.168.51.10",
+  "dbhost" => "192.168.52.10",
   "directory" => "/var/www/html/owncloud/data",
   "adminlogin" => "admin1234",
   "adminpass" => "1234"
@@ -236,9 +282,9 @@ php -r "
     \$config = include(\$configFile);
     \$config['trusted_domains'] = array(
       'localhost',
-      '192.168.41.10',
-      '192.168.41.11',
-      '192.168.41.12',
+      '192.168.42.10',
+      '192.168.42.11',
+      '192.168.42.12',
     );
     file_put_contents(\$configFile, '<?php return ' . var_export(\$config, true) . ';');
   } else {
@@ -247,7 +293,7 @@ php -r "
 "
 
 
-sed -i 's/^listen = .*/listen = 192.168.41.13:9000/' /etc/php/7.4/fpm/pool.d/www.conf
+sed -i 's/^listen = .*/listen = 192.168.42.13:9000/' /etc/php/7.4/fpm/pool.d/www.conf
 
 sudo systemctl restart php7.4-fpm
 
@@ -263,9 +309,9 @@ sudo ip route del default
 
 **sudo chmod -R 755 /var/www/html:** Aplica permisos de lectura, escritura y ejecución al directorio.
 
-**echo "/var/www/html 192.168.41.11(rw,sync,no_subtree_check)" >> /etc/exports:** Configura el directorio `/var/www/html` para ser exportado al cliente con la ip `192.168.41.11`.
+**echo "/var/www/html 192.168.42.11(rw,sync,no_subtree_check)" >> /etc/exports:** Configura el directorio `/var/www/html` para ser exportado al cliente con la ip `192.168.41.11`.
 
-**echo "/var/www/html 192.168.41.12(rw,sync,no_subtree_check)" >> /etc/exports:** Configura el mismo directorio para el cliente con la ip `192.168.41.12`.
+**echo "/var/www/html 192.168.42.12(rw,sync,no_subtree_check)" >> /etc/exports:** Configura el mismo directorio para el cliente con la ip `192.168.41.12`.
 
 **exportfs -a:** Exporta las configuraciones del servidor NFS.
 
@@ -285,7 +331,7 @@ sudo ip route del default
 
 **cat <<EOF > /var/www/html/owncloud/config/autoconfig.php:** Crea y escribe un archivo de configuración automática para OwnCloud.
 
-**sed -i 's/^listen = .*/listen = 192.168.41.13:9000/' /etc/php/7.4/fpm/pool.d/www.conf:** Modifica el archivo de configuración de PHP-FPM.
+**sed -i 's/^listen = .*/listen = 192.168.42.13:9000/' /etc/php/7.4/fpm/pool.d/www.conf:** Modifica el archivo de configuración de PHP-FPM.
 
 **sudo systemctl restart php7.4-fpm:** Reinicia el servicio PHP-FPM.
 
@@ -297,14 +343,14 @@ sudo apt-get update -y
 sudo apt-get install -y mariadb-server
 
 
-sed -i 's/bind-address.*/bind-address = 192.168.51.10/' /etc/mysql/mariadb.conf.d/50-server.cnf
+sed -i 's/bind-address.*/bind-address = 192.168.52.10/' /etc/mysql/mariadb.conf.d/50-server.cnf
 
 sudo systemctl restart mariadb
 
 mysql -u root <<EOF
 CREATE DATABASE db_owncloud;
-CREATE USER 'alberto'@'192.168.51.%' IDENTIFIED BY '1234';
-GRANT ALL PRIVILEGES ON db_owncloud.* TO 'alberto'@'192.168.51.%';
+CREATE USER 'alberto'@'192.168.52.%' IDENTIFIED BY '1234';
+GRANT ALL PRIVILEGES ON db_owncloud.* TO 'alberto'@'192.168.52.%';
 FLUSH PRIVILEGES;
 EOF
 
@@ -314,7 +360,7 @@ sudo ip route del default
 
 **sudo apt-get install -y mariadb-server:** Instala el servidor de base de datos MariaDB.
 
-**sed -i 's/bind-address.*/bind-address = 192.168.51.10/' /etc/mysql/mariadb.conf.d/50-server.cnf:** Cambia la configuración de MariaDB para aceptar conexiones desde la IP 192.168.51.10.
+**sed -i 's/bind-address.*/bind-address = 192.168.52.10/' /etc/mysql/mariadb.conf.d/50-server.cnf:** Cambia la configuración de MariaDB para aceptar conexiones desde la IP 192.168.52.10.
 
 **sudo systemctl restart mariadb:** Reinicia el servicio de MariaDB.
 
@@ -322,20 +368,24 @@ sudo ip route del default
 
 **CREATE DATABASE db_owncloud;:** Crea una base de datos.
 
-**CREATE USER 'alberto'@'192.168.51.%' IDENTIFIED BY '1234';:** Crea un usuario alberto con acceso desde la subred 192.168.51.0/24 y la contraseña 1234.
+**CREATE USER 'alberto'@'192.168.52.%' IDENTIFIED BY '1234';:** Crea un usuario alberto con acceso desde la subred 192.168.52.0/24 y la contraseña 1234.
 
-<b>GRANT ALL PRIVILEGES ON db_owncloud.* TO 'alberto'@'192.168.51.%';:</b> Concede a alberto permisos completos sobre la base de datos db_owncloud.
+<b>GRANT ALL PRIVILEGES ON db_owncloud.* TO 'alberto'@'192.168.52.%';:</b> Concede a alberto permisos completos sobre la base de datos db_owncloud.
 
 **FLUSH PRIVILEGES;:** Aplica los cambios de privilegios en el servidor MariaDB.
 
 **sudo ip route del default**: Elimina la ruta de puerta de enlace predeterminada.
 
 ## Resultado OwnCloud
-**Tenemos que mirar la ip del balanceador(en mi caso 192.168.0.23).**
-![direccion ip](https://github.com/user-attachments/assets/7e128582-2d03-4012-8991-14bcbf2e2c0c)
+**Tenemos que mirar la ip del balanceador(en mi caso 192.168.0.27).**
+![ip a](https://github.com/user-attachments/assets/c9fdf3c4-3431-465f-a96b-6c1e9231bcd9)
+
 
 **En el navegador buscamos ```http://ipbalanceador/owncloud y nos direige directamente al login, donde tendremos que poner nombre del admin y su contraseña.**
-![owncloud login admin](https://github.com/user-attachments/assets/5941451a-edb2-4e11-b35e-1f0d938d5fd4)
+![owncloud log](https://github.com/user-attachments/assets/e21b4393-889e-4fa8-bfcb-e9de99b6ab4e)
+
 
 **Una vez introducido las credenciales, nos redirige dentro de OwnCloud.**
-![owncloud archivos](https://github.com/user-attachments/assets/d657d4ac-81f7-4fcd-84ad-30b104e5da6c)
+![owncloud archivos](https://github.com/user-attachments/assets/4754146b-9cb6-4d29-823b-f7597bdf2698)
+
+
