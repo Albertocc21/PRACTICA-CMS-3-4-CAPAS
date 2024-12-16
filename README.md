@@ -78,7 +78,7 @@ La infraestructura contará con 3 capas que contendrán:
 
 ## Scripts
 
-#### Script del balanceador
+### Script del balanceador
 ```bash
 sudo apt-get update -y
 sudo apt-get install -y nginx
@@ -115,7 +115,7 @@ sudo systemctl restart nginx
 
 **sudo systemctl restart nginx:** Reinicia el servicio Nginx.
 
-#### Script servidores web
+### Script servidores web
 ```bash
 sudo apt-get update -y
 sudo apt-get install -y nginx nfs-common php7.4 php7.4-fpm php7.4-mysql php7.4-gd php7.4-xml php7.4-mbstring php7.4-curl php7.4-zip php7.4-intl php7.4-ldap
@@ -185,7 +185,7 @@ sudo ip route del default
 
 **sudo ip route del default:** Elimina la ruta de la puerta de enlace por defecto.
 
-#### Script NFS
+### Script NFS
 ```bash
 sudo apt-get update -y
 sudo apt-get install -y nfs-kernel-server php7.4 php7.4-fpm php7.4-mysql php7.4-gd php7.4-xml php7.4-mbstring php7.4-curl php7.4-zip php7.4-intl php7.4-ldap unzip
@@ -289,7 +289,7 @@ sudo ip route del default
 
 **sudo ip route del default:** Elimina la ruta de la puerta de enlace por defecto.
 
-#### Script BBDD
+### Script BBDD
 ```bash
 sudo apt-get update -y
 sudo apt-get install -y mariadb-server
@@ -327,6 +327,7 @@ sudo ip route del default
 **FLUSH PRIVILEGES;:** Aplica los cambios de privilegios en el servidor MariaDB.
 
 **sudo ip route del default**: Elimina la ruta de puerta de enlace predeterminada.
+
 ## Resultado Owncloud
 **Tenemos que mirar la ip del balanceador(en mi caso 192.168.0.23).**
 ![direccion ip](https://github.com/user-attachments/assets/7e128582-2d03-4012-8991-14bcbf2e2c0c)
